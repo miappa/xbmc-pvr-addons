@@ -463,21 +463,21 @@ PVR_ERROR Pvr2Wmc::AddTimer(const PVR_TIMER &xTmr)
 					XBMC->Log(LOG_DEBUG, "timer channel changed by wmc to '%s'", splitResult[1].c_str());
 					// build info string and notify user of channel change
 					infoStr = XBMC->GetLocalizedString(30009) + splitResult[1];		
-					XBMC->QueueNotification(QUEUE_ERROR, infoStr.c_str());
+					XBMC->QueueNotification(QUEUE_WARNING, infoStr.c_str());
 				}
 				else if (splitResult[0] == "recordingTime")				// service picked a different start time for timer
 				{
 					XBMC->Log(LOG_DEBUG, "timer start time changed by wmc to '%s'", splitResult[1].c_str());
 					// build info string and notify user of time change
 					infoStr = XBMC->GetLocalizedString(30010) + splitResult[1];
-					XBMC->QueueNotification(QUEUE_ERROR, infoStr.c_str());
+					XBMC->QueueNotification(QUEUE_WARNING, infoStr.c_str());
 				}
 				else if (splitResult[0] == "increasedEndTime")			// end time has been increased on an instant record
 				{
 					XBMC->Log(LOG_DEBUG, "instant record end time increased by '%s' minutes", splitResult[1].c_str());
 					// build info string and notify user of time increase
 					infoStr = XBMC->GetLocalizedString(30013) + splitResult[1] + " min";
-					XBMC->QueueNotification(QUEUE_ERROR, infoStr.c_str());
+					XBMC->QueueNotification(QUEUE_INFO, infoStr.c_str());
 				}
 			}
 		}
@@ -867,7 +867,7 @@ int Pvr2Wmc::ReadLiveStream(unsigned char *pBuffer, unsigned int iBufferSize)
 			_insertDurationHeader = false;									// only do header insertion once
 			memset(pBuffer, 0xFF, iBufferSize);								// set buffer to all FF (default padding char for packets)
 			vector<CStdString> v = split(_durationHeader, " ");				// get header bytes by unpacking reponse
-			for (int i=0; i<16; i++)										// insert header bytes, creating a fake packet
+			for (int i=0; i<16; i++)										// insert header bytes, creating a fake packet at start of buffer
 			{
 				//*(pBuffer + i) = pcr[i];
 				*(pBuffer + i) = (char)strtol(v[i].c_str(), NULL, 16);
@@ -875,7 +875,7 @@ int Pvr2Wmc::ReadLiveStream(unsigned char *pBuffer, unsigned int iBufferSize)
 			return iBufferSize;											// terminate read here
 		} 
 		// in case something goes wrong, turn off fake header insertion flag.
-		// the header insertion usually happens around _readCnt=20, so 50 should be safe
+		// the header insertion usually happens around _readCnt=21, so 50 should be safe
 		if (_readCnt > 50)
 			_insertDurationHeader = false;
 
