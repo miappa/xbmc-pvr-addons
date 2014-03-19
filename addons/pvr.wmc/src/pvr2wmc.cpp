@@ -80,9 +80,16 @@ bool Pvr2Wmc::IsServerDown()
 {
 	CStdString request;
 	request.Format("GetServiceStatus|%s|%s", PVRWMC_GetClientVersion(), g_clientOS);
-	_socketClient.SetTimeOut(10);					// set a timout interval for checking if server is down
-	bool res = _socketClient.GetBool(request, true);
-	return !res;
+	_socketClient.SetTimeOut(10);											// set a timout interval for checking if server is down
+	vector<CStdString> results = _socketClient.GetVector(request, true);	// get serverstatus
+	bool isServerDown = (results[0] != "True");								// true if server is down
+
+	// GetServiceStatus may return any updates requested by server
+	if (!isServerDown && results.size() > 1)								// if server is not down and it requests updates
+	{
+		TriggerUpdates(results);											// send update array to trigger updates requested by server
+	}
+	return isServerDown;
 }
 
 void Pvr2Wmc::UnLoading()
@@ -136,7 +143,7 @@ bool isServerError(vector<CStdString> results)
 }
 
 // look at result vector from server and perform any updates requested
-void TriggerUpdates(vector<CStdString> results)
+void Pvr2Wmc::TriggerUpdates(vector<CStdString> results)
 {
 	FOREACH(response, results)
 	{
@@ -794,9 +801,10 @@ bool Pvr2Wmc::OpenLiveStream(const PVR_CHANNEL &channel)
 			XBMC->Log(LOG_DEBUG, "OpenLiveStream> stream file opened successfully");
 		}
 
-		_lostStream = false;						// if we got to here, stream started ok
+		_lostStream = false;						// if we got to here, stream started ok, so set default values
 		_lastStreamSize = 0;
 		_isStreamFileGrowing = true;
+		_insertDurationHeader = false;				// only used for active recordings
 		return true;								// stream is up
 	}
 }
