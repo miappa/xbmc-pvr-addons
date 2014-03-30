@@ -869,7 +869,7 @@ int Pvr2Wmc::ReadLiveStream(unsigned char *pBuffer, unsigned int iBufferSize)
 				//*(pBuffer + i) = pcr[i];
 				*(pBuffer + i) = (char)strtol(v[i].c_str(), NULL, 16);
 			}
-			return iBufferSize;											// terminate read here
+			return iBufferSize;												// terminate read here after header is inserted
 		} 
 		// in case something goes wrong, turn off fake header insertion flag.
 		// the header insertion usually happens around _readCnt=21, so 50 should be safe
